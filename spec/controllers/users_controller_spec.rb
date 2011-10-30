@@ -109,6 +109,7 @@ describe UsersController do
       end
     end
   end
+  
   describe "GET 'edit'" do
 
     before(:each) do
@@ -173,11 +174,36 @@ describe UsersController do
         @user.email.should == @attr[:email]
       end
       
+      it "should redirect to the user show page" do
+        put :update, :id => @user, :user => @attr
+        response.should redirect_to(user_path(@user))
+      end
+      
       it "should have a flash message" do
         put :update, :id => @user, :user => @attr
         flash[:success].should =~ /updated/
       end
-      
+    end
+  end
+
+  describe "authentication of edit/update pages" do
+
+    before(:each) do
+      @user = Factory(:user)
+    end
+
+    describe "for non-signed-in users" do
+
+      it "should deny access to 'edit'" do
+        get :edit, :id => @user
+        response.should redirect_to(signin_path)
+        flash[:notice].should =~ /sign in/i
+      end
+
+      it "should deny access to 'update'" do
+        put :update, :id => @user, :user => {}
+        response.should redirect_to(signin_path)
+      end
     end
   end
 end
